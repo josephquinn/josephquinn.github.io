@@ -15,7 +15,7 @@ table, caption, tbody, tfoot, thead, tr, th, td,
 article, aside, canvas, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section, summary,
 time, mark, audio, video {
-    margin: 0;
+    margin: auto;
     padding: 5px;
 }
 article, aside, details, figcaption, figure, footer,
@@ -85,7 +85,7 @@ body {
 
 .avatar {
     float: left;
-    margin: 0 40px 20px 0;
+    margin: auto;
 }
     .avatar img {
         max-width: 200px;
