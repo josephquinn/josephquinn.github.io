@@ -16,7 +16,10 @@ article, aside, canvas, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section, summary,
 time, mark, audio, video {
     margin: auto;
-    padding: 5px;
+    padding-left: 3px;
+    padding-right: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 article, aside, details, figcaption, figure, footer,
 header, hgroup, menu, nav, section {
