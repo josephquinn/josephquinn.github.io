@@ -33,7 +33,7 @@ table {
     border-spacing: 0;
 }
 strong, b, mark {
-    font-weight: bold;
+    font-weight: normal;
     font-style: inherit;
 }
 em, i, cite, q, address, dfn, var {
@@ -102,7 +102,7 @@ body {
 }
     .title {
         font-size: 40px;
-        font-weight: normal;
+        font-weight: bold;
         line-height: 1;
     }
 
@@ -145,7 +145,7 @@ ul, ol, dl {
 }
 a {
     color: #7296A7;
-    font-weight: bold;
+    font-weight: normal;
 }
 a:hover, a:focus {
     color: #95a4a9;
