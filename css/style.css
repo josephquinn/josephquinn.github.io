@@ -17,8 +17,8 @@ footer, header, hgroup, menu, nav, section, summary,
 time, mark, audio, video {
     margin: auto;
     padding-left: 3px;
-    padding-right: 5px;
-    padding-top: 5px;
+    padding-right: 3px;
+    padding-top: 3px;
     padding-bottom: 5px;
 }
 article, aside, details, figcaption, figure, footer,
@@ -79,7 +79,7 @@ textarea {
 html {
     background-color: #f6f9f9;
     color: #4B545A;
-    font: 16px/1.75 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font: 14px/1.75 "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 body {
     margin-top: 7%;
