@@ -82,8 +82,9 @@ html {
     font: 16px/1.75 "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 body {
-    margin-top: 5%;
+    margin-top: 3%;
 	margin-left: 5%;
+	margin-right: auto;
 }
 
 .avatar {
@@ -91,8 +92,8 @@ body {
     margin: auto;
 }
     .avatar img {
-        max-width: 190px;
-        max-height: 190px;
+        max-width: 200px;
+        max-height: 200px;
         border-radius: 120px;
     }
 
