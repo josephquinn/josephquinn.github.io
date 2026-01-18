@@ -585,14 +585,14 @@
               ticks: {
                 stepSize: 1,
                 precision: 0,
-                color: "rgba(255,255,255,0.78)",
+                color: "rgba(15,23,42,0.78)",
                 font: { weight: 650 }
               },
-              grid: { color: "rgba(255,255,255,0.10)" }},
+              grid: { color: "rgba(15,23,42,0.10)" }},
             y: {
               beginAtZero: true,
-              ticks: { color: "rgba(255,255,255,0.70)" },
-              grid: { color: "rgba(255,255,255,0.10)" },
+              ticks: { color: "rgba(15,23,42,0.62)" },
+              grid: { color: "rgba(15,23,42,0.10)" },
               suggestedMax: 1
             }
           }
@@ -618,7 +618,7 @@
         const xHigh = xScale.getPixelForValue(ciHigh);
 
         ctx.save();
-        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.strokeStyle = "rgba(15,23,42,0.78)";
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(xLow, yPix);
@@ -647,7 +647,7 @@
             label: "Mean",
             data: [{x: 0, y: 0}],
             pointBackgroundColor: COLOR_MEAN,
-            pointBorderColor: "rgba(255,255,255,0.90)",
+            pointBorderColor: "rgba(15,23,42,0.78)",
             pointBorderWidth: 2,
             pointRadius: 7
           }]
@@ -664,8 +664,8 @@
           scales: {
             x: {
               type: "linear",
-              ticks: { color: "rgba(255,255,255,0.78)" },
-              grid: { color: "rgba(255,255,255,0.10)" }
+              ticks: { color: "rgba(15,23,42,0.78)" },
+              grid: { color: "rgba(15,23,42,0.10)" }
             },
             y: {
               display: false,
