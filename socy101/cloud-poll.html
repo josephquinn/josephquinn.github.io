@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Word Cloud</title>
+
+  <!-- Word cloud renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+
+  <style>
+    /* Match mc-poll.html site theme */
+    :root{
+      --bg0:#0b1020;
+      --bg1:#08121a;
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.72);
+
+      --card: rgba(255,255,255,0.22);
+      --border: rgba(255,255,255,0.22);
+      --shadow: 0 18px 60px rgba(0,0,0,0.35);
+      --radius: 18px;
+
+      --c1:#003b49;
+      --c2:#1d4289;
+      --c3:#d3273e;
+      --c4:#1b365d;
+      --c5:#5d3754;
+      --c6:#007a78;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+      background:
+        radial-gradient(1200px 900px at 20% 10%, rgba(29,66,137,0.22), transparent 55%),
+        radial-gradient(1200px 900px at 80% 20%, rgba(0,122,120,0.18), transparent 55%),
+        radial-gradient(900px 700px at 50% 90%, rgba(211,39,62,0.12), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      padding: 22px;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:1100px;
+      margin:auto;
+      display:grid;
+      grid-template-rows:auto 1fr;
+      gap:18px;
+      min-height: calc(100vh - 44px);
+    }
+
+    .card{
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      min-width:0;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .title{
+      font-size: 14px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 8px;
+    }
+    .question{
+      font-size: clamp(20px, 2.2vw, 30px);
+      line-height: 1.15;
+      font-weight: 760;
+      margin: 0 0 10px;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-top: 8px;
+    }
+
+    .inputWrap{
+      flex: 1 1 420px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width: 260px;
+    }
+
+    input[type="text"]{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      outline: none;
+      font-weight: 650;
+    }
+    input::placeholder{ color: rgba(255,255,255,0.55); }
+
+    button{
+      appearance:none;
+      border:1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 780;
+      cursor:pointer;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+      white-space: nowrap;
+    }
+    button:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.26);
+    }
+    button:disabled{
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform:none;
+    }
+    .primary{
+      background: rgba(29,66,137,0.38);
+      border-color: rgba(29,66,137,0.48);
+    }
+
+    .sub{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status{
+      margin-left:auto;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(255,255,255,0.35);
+    }
+    .dot.live{
+      background: var(--c6);
+      box-shadow: 0 0 0 6px rgba(0,122,120,0.16);
+    }
+
+    .cloudCard{
+      padding: 14px;
+      display:flex;
+      flex-direction:column;
+      min-height: 520px;
+    }
+    .cloudStage{
+      position:relative;
+      flex: 1 1 auto;
+      width:100%;
+      min-height: 420px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      overflow:hidden;
+    }
+    canvas#cloud{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.70);
+    }
+
+    .tiny-secret{
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      width: 14px;
+      height: 14px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      cursor: pointer;
+      opacity: 0.35;
+      transition: opacity 120ms ease, transform 120ms ease;
+      z-index: 9999;
+    }
+    .tiny-secret:hover{ opacity: 0.75; transform: translateY(-1px); }
+
+    @media (max-width: 900px){
+      body{ padding: 16px; }
+      .wrap{ min-height: calc(100vh - 32px); }
+      .status{ width:100%; margin-left:0; justify-content:flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <section class="card" aria-label="Prompt and entry">
+      <p class="title">Live Poll</p>
+      <h1 id="qText" class="question">Loading prompt…</h1>
+
+      <div class="controls">
+        <div class="inputWrap">
+          <input id="entry" type="text" inputmode="text" autocomplete="off" spellcheck="false"
+                 placeholder="type here…" maxlength="80" />
+          <button id="submitBtn" class="primary" disabled>Submit</button>
+        </div>
+
+        <div class="status" title="Live connection status">
+          <span id="liveDot" class="dot"></span>
+          <span id="liveText">Connecting…</span>
+        </div>
+      </div>
+
+      <p class="sub">enter a word or short phrase - all lower case</p>
+    </section>
+
+    <section class="card cloudCard" aria-label="Word cloud">
+      <p class="title">Word Cloud</p>
+      <div class="cloudStage" id="cloudStage">
+        <canvas id="cloud"></canvas>
+      </div>
+      <p class="hint" id="hint">Anonymous • aggregated counts only</p>
+    </section>
+  </div>
+
+  <div id="secretClear" class="tiny-secret" title="(instructor) clear"></div>
+
+  <script>
+    /**********************
+     * EDIT THESE TWO LINES
+     * SCRIPT_URL is the same across all pages.
+     * POLL_ID must match the Google Sheet tab name for this poll.
+     **********************/
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxB5M8ECJ40aHVYDFbYlr64ubuFm3McUArdNpzKk0021c_hg8M4vWgxOLcmJiW2aJfU/exec";
+    const POLL_ID = "Word Cloud - verbatim";
+
+    const PALETTE = ["#003b49","#1d4289","#d3273e","#1b365d","#5d3754","#007a78"];
+    const REFRESH_MS = 1500;
+
+    // Instructor clear uses your existing backend clear action
+    const ADMIN_CODE_PROMPT = true;
+
+    const elQ = document.getElementById("qText");
+    const elEntry = document.getElementById("entry");
+    const elSubmit = document.getElementById("submitBtn");
+    const elLiveDot = document.getElementById("liveDot");
+    const elLiveText = document.getElementById("liveText");
+    const elHint = document.getElementById("hint");
+    const cloudStage = document.getElementById("cloudStage");
+    const canvas = document.getElementById("cloud");
+    const ctx = canvas.getContext("2d");
+
+    let lastKey = "";
+    let poll = null;
+
+    function setLive(ok, msg){
+      elLiveDot.classList.toggle("live", !!ok);
+      elLiveText.textContent = msg || (ok ? "Live" : "Offline");
+    }
+
+    function normalizePhrase(s){
+      return String(s || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+    }
+
+    function resizeCanvas(){
+      const r = cloudStage.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(320, Math.floor(r.width * dpr));
+      canvas.height = Math.max(320, Math.floor(r.height * dpr));
+      canvas.style.width = r.width + "px";
+      canvas.style.height = r.height + "px";
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+
+    function colorForWord(word, weight){
+      // stable-ish mapping: hash the word to pick from palette
+      let h = 0;
+      for (let i=0;i<word.length;i++) h = (h*31 + word.charCodeAt(i)) >>> 0;
+      return PALETTE[h % PALETTE.length];
+    }
+
+    function renderCloud(options){
+      resizeCanvas();
+      const list = (options || [])
+        .map(o => [String(o.value).trim(), Number(o.count ?? 0)])
+        .filter(([w,c]) => w.length > 0 && Number.isFinite(c) && c > 0);
+
+      // If empty, show a friendly message
+      if (list.length === 0){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,0.70)";
+        ctx.font = "700 16px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("No entries yet.", canvas.width/2, canvas.height/2);
+        ctx.restore();
+        return;
+      }
+
+      // Weight scaling: make it responsive
+      const counts = list.map(x => x[1]);
+      const maxC = Math.max(...counts);
+      const minFont = Math.max(12, Math.min(22, cloudStage.clientWidth/30));
+      const maxFont = Math.max(34, Math.min(92, cloudStage.clientWidth/8));
+
+      WordCloud(canvas, {
+        list,
+        backgroundColor: "rgba(0,0,0,0)",
+        minSize: minFont,
+        weightFactor: (w) => {
+          // map counts to font sizes smoothly
+          const t = Math.sqrt(w / maxC);
+          return minFont + t * (maxFont - minFont);
+        },
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+        fontWeight: "700",
+        color: (word, weight) => colorForWord(word, weight),
+        rotateRatio: 0.12,
+        rotationSteps: 2,
+        minRotation: 0,
+        maxRotation: Math.PI/10,
+        shuffle: true,
+        drawOutOfBound: false,
+        shrinkToFit: true,
+        clearCanvas: true,
+        gridSize: Math.max(6, Math.floor(cloudStage.clientWidth/55)),
+      });
+    }
+
+    async function apiGetPoll(){
+      const url = `${SCRIPT_URL}?action=get&poll=${encodeURIComponent(POLL_ID)}&t=${Date.now()}`;
+      const res = await fetch(url, { method:"GET" });
+      if (!res.ok) throw new Error(`GET failed: ${res.status}`);
+      return await res.json();
+    }
+
+    async function apiSubmitWord(text){
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "word", poll: POLL_ID, text })
+      });
+      if (!res.ok) throw new Error(`POST word failed: ${res.status}`);
+      return await res.json();
+    }
+
+    async function apiClear(adminCode){
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "clear", poll: POLL_ID, adminCode })
+      });
+      if (!res.ok) throw new Error(`POST clear failed: ${res.status}`);
+      return await res.json();
+    }
+
+    function syncSubmitButton(){
+      const v = normalizePhrase(elEntry.value);
+      elSubmit.disabled = (v.length === 0);
+    }
+
+    async function refresh(){
+      try {
+        const data = await apiGetPoll();
+        poll = data;
+        elQ.textContent = poll.question || "Untitled prompt";
+        renderCloud(poll.options || []);
+        const total = (poll.options || []).reduce((a,o)=>a + Number(o.count ?? 0), 0);
+        elHint.textContent = `Anonymous • ${total} total entries (aggregated)`;
+        setLive(true, "Live");
+      } catch (e) {
+        console.error(e);
+        setLive(false, "Offline");
+        elQ.textContent = "Couldn’t load prompt.";
+        elHint.textContent = "Check SCRIPT_URL, tab name, and deployment permissions.";
+      }
+    }
+
+    elEntry.addEventListener("input", syncSubmitButton);
+    elEntry.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (!elSubmit.disabled) elSubmit.click();
+      }
+    });
+
+    elSubmit.addEventListener("click", async () => {
+      const text = normalizePhrase(elEntry.value);
+      if (!text) return;
+      elSubmit.disabled = true;
+
+      try {
+        const out = await apiSubmitWord(text);
+        if (!out || out.ok !== true) throw new Error(out && out.error ? out.error : "submit failed");
+        elEntry.value = "";
+        syncSubmitButton();
+        await refresh();
+      } catch (e) {
+        console.error(e);
+        elHint.textContent = "Submit failed. Try again.";
+        syncSubmitButton();
+      }
+    });
+
+    // Secret clear (instructor)
+    document.getElementById("secretClear").addEventListener("click", async () => {
+      const adminCode = prompt("Instructor code to clear this poll:");
+      if (!adminCode) return;
+      try {
+        const out = await apiClear(adminCode);
+        if (out && out.ok) {
+          await refresh();
+          alert("Cleared.");
+        } else {
+          alert("Wrong code (or clear failed).");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Clear failed. Check deployment.");
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      // re-render with current data after resize
+      if (poll && poll.options) renderCloud(poll.options);
+    });
+
+    (async () => {
+      setLive(false, "Connecting…");
+      await refresh();
+      setInterval(refresh, REFRESH_MS);
+    })();
+  </script>
+</body>
+</html>
