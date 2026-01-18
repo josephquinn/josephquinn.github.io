@@ -382,11 +382,12 @@
     async function refresh(){
       try {
         const data = await apiGetPoll();
+        if (!data || data.ok !== true) throw new Error((data && data.error) ? data.error : "Bad response");
         poll = data;
         elQ.textContent = poll.question || "Untitled prompt";
         renderCloud(poll.options || []);
         const total = (poll.options || []).reduce((a,o)=>a + Number(o.count ?? 0), 0);
-        elHint.textContent = `Anonymous • ${total} total entries (aggregated)`;
+        elHint.textContent = `Anonymous • ${total} total entries (aggregated) • updated ${new Date().toLocaleTimeString()}`;
         setLive(true, "Live");
       } catch (e) {
         console.error(e);
