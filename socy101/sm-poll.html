@@ -148,14 +148,14 @@
       gap: 10px;
       cursor: pointer;
       user-select: none;
-      background: rgba(255,255,255,0.62);
+      background: rgba(15,23,42,0.78);
       transition: transform 110ms ease, border-color 110ms ease, background 110ms ease, box-shadow 110ms ease;
     }
 
     .opt:hover{
       transform: translateY(-1px);
       border-color: rgba(29,66,137,0.26);
-      background: rgba(255,255,255,0.78);
+      background: rgba(15,23,42,0.78);
     }
 
     .opt.selected{
@@ -326,6 +326,16 @@
     const POLL_ID = "Choose All - cats";
 
     const PALETTE = ["#003b49","#1d4289","#d3273e","#1b365d","#5d3754","#007a78"];
+    // Force mc-poll axis styling globally (prevents white ticks)
+    Chart.defaults.color = "rgba(15,23,42,0.78)";
+    Chart.defaults.borderColor = "rgba(15,23,42,0.10)";
+    if (Chart.defaults.scale && Chart.defaults.scale.ticks) {
+      Chart.defaults.scale.ticks.color = "rgba(15,23,42,0.78)";
+    }
+    if (Chart.defaults.scale && Chart.defaults.scale.grid) {
+      Chart.defaults.scale.grid.color = "rgba(15,23,42,0.10)";
+    }
+
     const REFRESH_MS = 1500;
     const LOCAL_LOCK_KEY = `poll_lock_${POLL_ID}`;
 
@@ -439,8 +449,8 @@
           animation: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: "rgba(255,255,255,0.78)", font: { weight: 650 } }, grid: { display: false } },
-            y: { beginAtZero: true, ticks: { color: "rgba(255,255,255,0.70)" }, grid: { color: "rgba(255,255,255,0.10)" } }
+            x: { ticks: { color: "rgba(15,23,42,0.78)", font: { weight: 650 } }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { color: "rgba(15,23,42,0.62)" }, grid: { color: "rgba(15,23,42,0.10)" } }
           }
         }
       });
@@ -492,7 +502,7 @@
         buildOptions(poll.options || []);
 
         const labels = (poll.options || []).map(o => o.label);
-        const counts = (poll.options || []).map(o => Number(o.count || 0));
+        const counts = (poll.options || []).map(o => Number(o.count ?? 0));
         updateChart(labels, counts);
 
         const total = counts.reduce((a,b)=>a+b,0);
@@ -524,7 +534,7 @@
         }
 
         const labels = (poll.options || []).map(o => o.label);
-        const counts = (poll.options || []).map(o => Number(o.count || 0));
+        const counts = (poll.options || []).map(o => Number(o.count ?? 0));
         updateChart(labels, counts);
 
         const total = counts.reduce((a,b)=>a+b,0);
