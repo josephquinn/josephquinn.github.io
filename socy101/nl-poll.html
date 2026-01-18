@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Poll • Likert as Numeric</title>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      /* Dark background that complements your palette */
+      --bg0: #0b1020;
+      --bg1: #08121a;
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.72);
+
+      /* Frosted cards */
+      --card: rgba(255,255,255,0.12);
+      --card2: rgba(255,255,255,0.16);
+      --border: rgba(255,255,255,0.22);
+      --shadow: 0 18px 60px rgba(0,0,0,0.35);
+      --radius: 18px;
+
+      /* Your categorical palette */
+      --c1: #003b49;
+      --c2: #1d4289; /* primary */
+      --c3: #d3273e; /* accent */
+      --c4: #1b365d;
+      --c5: #5d3754;
+      --c6: #007a78;
+
+      /* UI-derived neutrals */
+      --grid: rgba(255,255,255,0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      margin: 0;
+      min-height: 100vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background:
+        radial-gradient(1200px 900px at 20% 10%, rgba(29,66,137,0.22), transparent 55%),
+        radial-gradient(1200px 900px at 80% 20%, rgba(0,122,120,0.18), transparent 55%),
+        radial-gradient(900px 700px at 50% 90%, rgba(211,39,62,0.12), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      padding: 22px;
+    }
+
+    .wrap{
+      width: 100%;
+      max-width: 1100px;
+
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+
+      margin: auto;
+    }
+
+    @media (max-width: 900px){
+      body{ align-items: flex-start; }
+      .wrap{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, var(--card2), var(--card));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      min-width: 0;
+    }
+
+    .title{
+      font-size: 14px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 8px;
+    }
+
+    .question{
+      font-size: clamp(20px, 2.5vw, 30px);
+      line-height: 1.15;
+      font-weight: 760;
+      margin: 0 0 10px;
+    }
+
+    .sub{
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Likert “continuum” options */
+    .scaleWrap{
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .scaleRow{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .opt{
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      min-width: 0;
+    }
+    .opt:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.28);
+    }
+    .opt.selected{
+      border-color: rgba(29,66,137,0.65);
+      box-shadow: 0 0 0 5px rgba(29,66,137,0.16);
+      background: rgba(255,255,255,0.15);
+    }
+
+    .optTop{
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .num{
+      font-weight: 850;
+      font-size: 18px;
+      color: rgba(255,255,255,0.95);
+      background: rgba(29,66,137,0.35);
+      border: 1px solid rgba(29,66,137,0.35);
+      padding: 4px 10px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .label{
+      font-size: 14px;
+      line-height: 1.2;
+      color: rgba(255,255,255,0.90);
+      font-weight: 650;
+      word-break: break-word;
+    }
+
+    .actions{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    button{
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 780;
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+    }
+    button:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.26);
+    }
+    button:disabled{
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .primary{
+      background: rgba(29,66,137,0.38);
+      border-color: rgba(29,66,137,0.48);
+    }
+
+    .status{
+      margin-left: auto;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .dot{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.35);
+    }
+    .dot.live{
+      background: var(--c6);
+      box-shadow: 0 0 0 6px rgba(0,122,120,0.16);
+    }
+
+    .chartWrap{
+      height: 360px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .coefWrap{
+      margin-top: 14px;
+      height: 150px;
+      width: 100%;
+      overflow: hidden;
+      border-top: 1px solid rgba(255,255,255,0.18);
+      padding-top: 12px;
+    }
+
+    .footerNote{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.70);
+    }
+
+    .tiny-secret{
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      width: 14px;
+      height: 14px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      cursor: pointer;
+      opacity: 0.35;
+      transition: opacity 120ms ease, transform 120ms ease;
+      z-index: 9999;
+    }
+    .tiny-secret:hover{
+      opacity: 0.75;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card" aria-label="Poll input">
+      <p class="title">Live Poll</p>
+      <h1 id="qText" class="question">Loading question…</h1>
+      <p id="qSub" class="sub">Choose one number on the scale.</p>
+
+      <div class="scaleWrap">
+        <div id="scaleRow" class="scaleRow" aria-label="Scale options"></div>
+      </div>
+
+      <div class="actions">
+        <button id="voteBtn" class="primary" disabled>Submit</button>
+        <button id="revoteBtn" disabled title="Change your vote on this device">Change vote</button>
+
+        <div class="status" title="Live connection status">
+          <span id="liveDot" class="dot"></span>
+          <span id="liveText">Connecting…</span>
+        </div>
+      </div>
+
+      <div class="footerNote">Anonymous • aggregated counts only</div>
+    </section>
+
+    <section class="card" aria-label="Results">
+      <p class="title">Results</p>
+      <div class="chartWrap">
+        <canvas id="densityChart"></canvas>
+      </div>
+
+      <div class="coefWrap">
+        <p class="title" style="margin:0 0 8px;">Coefficient</p>
+        <canvas id="coefChart"></canvas>
+        <p id="coefNote" class="footerNote" style="margin-top:8px;"></p>
+      </div>
+
+      <p id="countNote" class="footerNote"></p>
+    </section>
+  </div>
+
+  <div id="secretClear" class="tiny-secret" title="(instructor)"></div>
+
+  <script>
+    /**********************
+     * EDIT THESE TWO LINES
+     * (Use the SAME SCRIPT_URL as your other poll pages.)
+     **********************/
+    const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+    const POLL_ID = "Likert as Numeric - coef";
+
+    const REFRESH_MS = 1500;
+    const LOCAL_LOCK_KEY = `poll_lock_${POLL_ID}`;
+
+    // palette use (single-series)
+    const COLOR_DENSITY = "#1d4289";
+    const COLOR_MEAN = "#d3273e";
+
+    let poll = null;
+    let selectedValue = null;
+    let densityChart = null;
+    let coefChart = null;
+
+    const elQ = document.getElementById("qText");
+    const elSub = document.getElementById("qSub");
+    const elScale = document.getElementById("scaleRow");
+    const elVote = document.getElementById("voteBtn");
+    const elReVote = document.getElementById("revoteBtn");
+    const elLiveDot = document.getElementById("liveDot");
+    const elLiveText = document.getElementById("liveText");
+    const elCountNote = document.getElementById("countNote");
+    const elCoefNote = document.getElementById("coefNote");
+
+    function setLive(ok, msg){
+      elLiveDot.classList.toggle("live", !!ok);
+      elLiveText.textContent = msg || (ok ? "Live" : "Offline");
+    }
+
+    function hasVotedOnThisDevice(){
+      return localStorage.getItem(LOCAL_LOCK_KEY) === "1";
+    }
+    function setVotedOnThisDevice(v){
+      localStorage.setItem(LOCAL_LOCK_KEY, v ? "1" : "0");
+    }
+
+    function clearSelectionUI(){
+      Array.from(elScale.children).forEach(x => x.classList.remove("selected"));
+      selectedValue = null;
+      elVote.disabled = true;
+    }
+
+    function buildScale(options){
+      elScale.innerHTML = "";
+      clearSelectionUI();
+
+      // sort numerically by value if possible
+      const opts = [...options].sort((a,b) => Number(a.value) - Number(b.value));
+
+      opts.forEach((opt) => {
+        const btn = document.createElement("div");
+        btn.className = "opt";
+        btn.setAttribute("role", "button");
+        btn.setAttribute("tabindex", "0");
+
+        const top = document.createElement("div");
+        top.className = "optTop";
+
+        const num = document.createElement("div");
+        num.className = "num";
+        num.textContent = opt.value;
+
+        const lbl = document.createElement("div");
+        lbl.className = "label";
+        lbl.textContent = opt.label;
+
+        top.appendChild(num);
+        top.appendChild(document.createElement("div")); // spacer
+        btn.appendChild(top);
+        btn.appendChild(lbl);
+
+        function selectThis(){
+          Array.from(elScale.children).forEach(x => x.classList.remove("selected"));
+          btn.classList.add("selected");
+          selectedValue = opt.value;
+
+          if (hasVotedOnThisDevice()){
+            elVote.disabled = true;
+            elReVote.disabled = false;
+            elSub.textContent = "Vote recorded on this device.";
+          } else {
+            elVote.disabled = false;
+            elReVote.disabled = true;
+            elSub.textContent = "Ready to submit.";
+          }
+        }
+
+        btn.addEventListener("click", selectThis);
+        btn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            selectThis();
+          }
+        });
+
+        elScale.appendChild(btn);
+      });
+
+      if (hasVotedOnThisDevice()){
+        elVote.disabled = true;
+        elReVote.disabled = false;
+        elSub.textContent = "Vote recorded on this device.";
+      } else {
+        elReVote.disabled = true;
+        elSub.textContent = "Choose one number on the scale.";
+      }
+    }
+
+    async function apiGetPoll(){
+      const url = `${SCRIPT_URL}?action=get&poll=${encodeURIComponent(POLL_ID)}&t=${Date.now()}`;
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) throw new Error(`GET failed: ${res.status}`);
+      return await res.json();
+    }
+
+    async function apiVote(value){
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "vote", poll: POLL_ID, value })
+      });
+      if (!res.ok) throw new Error(`POST vote failed: ${res.status}`);
+      return await res.json();
+    }
+
+    async function apiClear(adminCode){
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "clear", poll: POLL_ID, adminCode })
+      });
+      if (!res.ok) throw new Error(`POST clear failed: ${res.status}`);
+      return await res.json();
+    }
+
+    /***************
+     * Stats helpers
+     ***************/
+    function weightedStats(values, counts){
+      const xs = values.map(Number);
+      const ws = counts.map(Number);
+      const n = ws.reduce((a,b)=>a+b,0);
+      if (!n) return { n: 0, mean: NaN, sd: NaN, se: NaN, ciLow: NaN, ciHigh: NaN };
+
+      const mean = xs.reduce((acc,x,i)=>acc + x*ws[i], 0) / n;
+      const varW = xs.reduce((acc,x,i)=>acc + ws[i]*Math.pow(x-mean,2), 0) / Math.max(1,(n-1));
+      const sd = Math.sqrt(varW);
+      const se = sd / Math.sqrt(n);
+      const z = 1.96;
+      return { n, mean, sd, se, ciLow: mean - z*se, ciHigh: mean + z*se };
+    }
+
+    // weighted Gaussian KDE on grid
+    function kdeWeighted(values, counts, gridX){
+      const xs = values.map(Number);
+      const ws = counts.map(Number);
+      const n = ws.reduce((a,b)=>a+b,0);
+      if (!n) return gridX.map(_=>0);
+
+      // bandwidth: Silverman-like
+      const st = weightedStats(xs, ws);
+      const sd = isFinite(st.sd) && st.sd>0 ? st.sd : 1;
+      const h = 1.06 * sd * Math.pow(n, -1/5);
+
+      const invSqrt2Pi = 1 / Math.sqrt(2*Math.PI);
+      const dens = gridX.map(xg => {
+        let s = 0;
+        for (let i=0;i<xs.length;i++){
+          const u = (xg - xs[i]) / h;
+          s += ws[i] * invSqrt2Pi * Math.exp(-0.5*u*u);
+        }
+        return s / (n * h);
+      });
+
+      // normalize to max=1 for a nice plot scale
+      const mx = Math.max(...dens);
+      return mx>0 ? dens.map(d=>d/mx) : dens;
+    }
+
+    function initDensityChart(){
+      const ctx = document.getElementById("densityChart");
+      densityChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [{
+            label: "Density (scaled)",
+            data: [],
+            borderColor: COLOR_DENSITY,
+            backgroundColor: "rgba(29,66,137,0.22)",
+            fill: true,
+            tension: 0.35,
+            pointRadius: 0,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: {
+              ticks: { color: "rgba(255,255,255,0.78)", font: { weight: 650 } },
+              grid: { color: "rgba(255,255,255,0.10)" }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: "rgba(255,255,255,0.70)" },
+              grid: { color: "rgba(255,255,255,0.10)" },
+              suggestedMax: 1
+            }
+          }
+        }
+      });
+    }
+
+    const errorBarPlugin = {
+      id: "errorBarPlugin",
+      afterDatasetsDraw(chart, args, pluginOptions) {
+        const { ctx, chartArea, scales } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
+
+        const point = meta.data[0]; // single point
+        const { ciLow, ciHigh } = pluginOptions || {};
+        if (!isFinite(ciLow) || !isFinite(ciHigh)) return;
+
+        const xScale = scales.x;
+        const yPix = point.y;
+
+        const xLow = xScale.getPixelForValue(ciLow);
+        const xHigh = xScale.getPixelForValue(ciHigh);
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(xLow, yPix);
+        ctx.lineTo(xHigh, yPix);
+        ctx.stroke();
+
+        // end caps
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(xLow, yPix-8);
+        ctx.lineTo(xLow, yPix+8);
+        ctx.moveTo(xHigh, yPix-8);
+        ctx.lineTo(xHigh, yPix+8);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    };
+
+    function initCoefChart(){
+      const ctx = document.getElementById("coefChart");
+      coefChart = new Chart(ctx, {
+        type: "scatter",
+        data: {
+          datasets: [{
+            label: "Mean",
+            data: [{x: 0, y: 0}],
+            pointBackgroundColor: COLOR_MEAN,
+            pointBorderColor: "rgba(255,255,255,0.90)",
+            pointBorderWidth: 2,
+            pointRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false },
+            errorBarPlugin: { ciLow: NaN, ciHigh: NaN }
+          },
+          scales: {
+            x: {
+              type: "linear",
+              ticks: { color: "rgba(255,255,255,0.78)" },
+              grid: { color: "rgba(255,255,255,0.10)" }
+            },
+            y: {
+              display: false,
+              min: -1,
+              max: 1
+            }
+          }
+        },
+        plugins: [errorBarPlugin]
+      });
+    }
+
+    function updateChartsFromPoll(poll){
+      const opts = (poll.options || []).map(o => ({
+        value: o.value,
+        label: o.label,
+        count: Number(o.count || 0)
+      }));
+
+      // density requires numeric values
+      const values = opts.map(o => Number(o.value)).filter(v => isFinite(v));
+      const counts = opts.map(o => Number(o.count || 0));
+
+      // keep sorted
+      const pairs = opts.map(o => [Number(o.value), Number(o.count||0)]).filter(p => isFinite(p[0]));
+      pairs.sort((a,b)=>a[0]-b[0]);
+      const xs = pairs.map(p=>p[0]);
+      const ws = pairs.map(p=>p[1]);
+
+      const n = ws.reduce((a,b)=>a+b,0);
+      elCountNote.textContent = `Total responses: ${n}`;
+
+      // grid (min..max), padded a bit
+      const minX = xs.length ? Math.min(...xs) : 0;
+      const maxX = xs.length ? Math.max(...xs) : 1;
+      const pad = (maxX - minX) > 0 ? (maxX - minX)*0.08 : 1;
+
+      const gridX = [];
+      const step = (maxX - minX) > 0 ? (maxX - minX)/80 : 0.1;
+      const lo = minX - pad;
+      const hi = maxX + pad;
+      for (let x = lo; x <= hi + 1e-9; x += step){
+        gridX.push(Number(x.toFixed(4)));
+      }
+
+      const dens = (n>0) ? kdeWeighted(xs, ws, gridX) : gridX.map(_=>0);
+
+      if (!densityChart) initDensityChart();
+      densityChart.data.labels = gridX.map(x => x.toString());
+      densityChart.data.datasets[0].data = dens;
+      densityChart.update();
+
+      const st = weightedStats(xs, ws);
+
+      if (!coefChart) initCoefChart();
+
+      // x-axis bounds: pad to show CI nicely
+      const xMin = isFinite(minX) ? (minX - pad) : 0;
+      const xMax = isFinite(maxX) ? (maxX + pad) : 1;
+      coefChart.options.scales.x.min = xMin;
+      coefChart.options.scales.x.max = xMax;
+
+      coefChart.data.datasets[0].data = [{ x: st.n ? st.mean : 0, y: 0 }];
+      coefChart.options.plugins.errorBarPlugin = { ciLow: st.ciLow, ciHigh: st.ciHigh };
+      coefChart.update();
+
+      if (st.n){
+        elCoefNote.textContent = `Mean = ${st.mean.toFixed(2)}  •  95% CI [${st.ciLow.toFixed(2)}, ${st.ciHigh.toFixed(2)}]  •  SD = ${st.sd.toFixed(2)}`;
+      } else {
+        elCoefNote.textContent = `No responses yet.`;
+      }
+    }
+
+    async function loadInitial(){
+      try{
+        setLive(false, "Connecting…");
+        const data = await apiGetPoll();
+        poll = data;
+
+        elQ.textContent = poll.question || "Untitled poll";
+        // optional subtext: if your backend later includes poll.subtext, use it; otherwise keep default.
+        if (poll.subtext) elSub.textContent = poll.subtext;
+
+        buildScale(poll.options || []);
+        updateChartsFromPoll(poll);
+
+        setLive(true, "Live");
+      } catch (e){
+        console.error(e);
+        setLive(false, "Offline");
+        elQ.textContent = "Couldn’t load poll.";
+        elSub.textContent = "Check SCRIPT_URL, POLL_ID (tab name), and deployment permissions.";
+      }
+    }
+
+    async function refreshLoop(){
+      try{
+        const data = await apiGetPoll();
+        poll = data;
+
+        elQ.textContent = poll.question || "Untitled poll";
+        if (poll.subtext) elSub.textContent = poll.subtext;
+
+        // If labels/options changed, rebuild scale
+        const existingNums = Array.from(elScale.querySelectorAll(".num")).map(x => x.textContent);
+        const newNums = (poll.options || []).map(o => String(o.value));
+        const optionsChanged = existingNums.join("||") !== newNums.join("||");
+
+        if (optionsChanged){
+          buildScale(poll.options || []);
+        }
+
+        updateChartsFromPoll(poll);
+        setLive(true, "Live");
+      } catch (e){
+        console.error(e);
+        setLive(false, "Offline");
+      }
+    }
+
+    elVote.addEventListener("click", async () => {
+      if (selectedValue == null) return;
+      elVote.disabled = true;
+      try{
+        await apiVote(selectedValue);
+        setVotedOnThisDevice(true);
+        elReVote.disabled = false;
+        elSub.textContent = "Vote recorded on this device.";
+        await refreshLoop();
+      } catch (e){
+        console.error(e);
+        setVotedOnThisDevice(false);
+        elSub.textContent = "Vote failed. Try again.";
+        elVote.disabled = false;
+      }
+    });
+
+    elReVote.addEventListener("click", () => {
+      setVotedOnThisDevice(false);
+      elReVote.disabled = true;
+      elSub.textContent = "You can change your vote now (this device only).";
+      elVote.disabled = (selectedValue == null);
+    });
+
+    document.getElementById("secretClear").addEventListener("click", async () => {
+      const adminCode = prompt("Instructor code to clear this poll:");
+      if (!adminCode) return;
+      try{
+        const out = await apiClear(adminCode);
+        if (out && out.ok){
+          setVotedOnThisDevice(false);
+          clearSelectionUI();
+          await refreshLoop();
+          alert("Cleared.");
+        } else {
+          alert("Wrong code (or clear failed).");
+        }
+      } catch (e){
+        console.error(e);
+        alert("Clear failed. Check deployment and code.");
+      }
+    });
+
+    (async () => {
+      await loadInitial();
+      setInterval(refreshLoop, REFRESH_MS);
+    })();
+  </script>
+</body>
+</html>
