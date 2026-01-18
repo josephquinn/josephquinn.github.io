@@ -242,7 +242,7 @@
     <section class="card" aria-label="Poll input">
       <p class="title">Live Poll</p>
       <h1 id="qText" class="question">Loading question…</h1>
-      <p id="qSub" class="sub">Select all that apply.</p>
+      <p id="qSub" class="sub">Select all that apply</p>
 
       <div id="options" class="options" aria-label="Options"></div>
 
@@ -276,8 +276,8 @@
  * SCRIPT_URL is the same across all pages.
  * POLL_ID must match the Google Sheet tab name for this poll.
  **********************/
-    const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
-    const POLL_ID = "Choose all - cats";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxB5M8ECJ40aHVYDFbYlr64ubuFm3McUArdNpzKk0021c_hg8M4vWgxOLcmJiW2aJfU/exec";
+    const POLL_ID = "Choose All - cats";
 
     const PALETTE = ["#003b49","#1d4289","#d3273e","#1b365d","#5d3754","#007a78"];
     const REFRESH_MS = 1500;
@@ -318,7 +318,7 @@
       } else {
         elReVote.disabled = true;
         elVote.disabled = (selected.size === 0);
-        elSub.textContent = "Select all that apply.";
+        elSub.textContent = "Select all that apply";
       }
     }
 
@@ -512,7 +512,7 @@
 
     elReVote.addEventListener("click", () => {
       setVotedOnThisDevice(false);
-      elSub.textContent = "Select all that apply.";
+      elSub.textContent = "Select all that apply";
       syncButtons();
     });
 
