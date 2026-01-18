@@ -410,7 +410,7 @@
           } else {
             elVote.disabled = (selectedValues.length === 0);
             elReVote.disabled = true;
-            elSub.textContent = selectedValues.length ? "Ready to submit." : "Select one or more options.";
+            elSub.textContent = selectedValues.length ? "Ready to submit." : "Select all that apply.";
           }
         });
 
@@ -423,7 +423,7 @@
         elSub.textContent = "Selections recorded on this device.";
       } else {
         elReVote.disabled = true;
-        elSub.textContent = "Select all that apply. Results update live.";
+        elSub.textContent = "Select all that apply.";
       }
     }
 
