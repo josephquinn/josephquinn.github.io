@@ -258,7 +258,7 @@
     const POLL_ID = "WordCloud";
 
     const PALETTE = ["#003b49","#1d4289","#d3273e","#1b365d","#5d3754","#007a78"];
-    const REFRESH_MS = 1500;
+    const REFRESH_MS = 2500;
 
     // Instructor clear uses your existing backend clear action
     const ADMIN_CODE_PROMPT = true;
@@ -414,13 +414,28 @@ try {
     async function refresh(){
       try {
         const data = await apiGetPoll();
+        if (!data || data.ok !== true) throw new Error((data && data.error) ? data.error : "Bad response");
         poll = data;
-        elQ.textContent = poll.question || "Untitled prompt";
-        renderCloud(poll.options || []);
+
+        const sig = JSON.stringify((poll.options || []).map(o => [String(o.value ?? ""), Number(o.count ?? 0)]));
+        const changed = (sig !== lastSig);
+        if (changed){
+          lastSig = sig;
+          elQ.textContent = poll.question || "Untitled prompt";
+          renderCloud(poll.options || []);
+        } else {
+          // Keep the prompt in sync without re-laying out the cloud
+          elQ.textContent = poll.question || "Untitled prompt";
+        }
+
         const total = (poll.options || []).reduce((a,o)=>a + Number(o.count ?? 0), 0);
-        elHint.textContent = `Anonymous • ${total} total entries (aggregated)`;
+        elHint.textContent = `Anonymous • ${total} total entries (aggregated) • updated ${new Date().toLocaleTimeString()}`;
         setLive(true, "Live");
-      } catch (e) {
+      } catch (err) {
+        setLive(false, "Offline");
+        elHint.textContent = "Couldn't load word cloud. Check SCRIPT_URL, POLL_ID (tab name), and deployment permissions.";
+      }
+    } catch (e) {
         console.error(e);
         setLive(false, "Offline");
         elQ.textContent = "Couldn’t load prompt.";
