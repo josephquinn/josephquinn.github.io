@@ -9,101 +9,280 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
-    :root{
-      /* Dark background that complements your palette */
-      --bg0: #0b1020;
-      --bg1: #08121a;
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.72);
+:root{
+      /* Dark site background (complements your palette) */
+      --bg0: #070b16;
+      --bg1: #0a1224;
+      --bg2: #081a20;
 
-      /* Frosted cards */
-      --card: rgba(255,255,255,0.12);
-      --card2: rgba(255,255,255,0.16);
+      /* Card surface (light frosted) */
+      --card: rgba(255,255,255,0.86);
+      --card2: rgba(255,255,255,0.72);
       --border: rgba(255,255,255,0.22);
-      --shadow: 0 18px 60px rgba(0,0,0,0.35);
-      --radius: 18px;
+      --border2: rgba(15,23,42,0.14);
+      --shadow: 0 16px 55px rgba(0,0,0,0.40);
+      --radius: 16px;
+
+      /* Text inside cards */
+      --text: #0f172a;       /* near-slate */
+      --muted: #475569;      /* slate */
 
       /* Your categorical palette */
       --c1: #003b49;
-      --c2: #1d4289; /* primary */
-      --c3: #d3273e; /* accent */
+      --c2: #1d4289;
+      --c3: #d3273e;
       --c4: #1b365d;
       --c5: #5d3754;
       --c6: #007a78;
 
-      /* UI-derived neutrals */
-      --grid: rgba(255,255,255,0.12);
+      /* UI accents */
+      --accent: var(--c2);
+      --accentSoft: rgba(29,66,137,0.14);
+      --danger: var(--c3);
+
+      /* Body text on dark bg */
+      --bodyText: rgba(255,255,255,0.88);
+      --bodyMuted: rgba(255,255,255,0.64);
     }
 
     * { box-sizing: border-box; }
+
     body{
       margin: 0;
-      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 
+      /* Center by default, but stay safe when resizing */
+      min-height: 100svh;
       display: flex;
       align-items: center;
       justify-content: center;
-
-      background:
-        radial-gradient(1200px 900px at 20% 10%, rgba(29,66,137,0.22), transparent 55%),
-        radial-gradient(1200px 900px at 80% 20%, rgba(0,122,120,0.18), transparent 55%),
-        radial-gradient(900px 700px at 50% 90%, rgba(211,39,62,0.12), transparent 60%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      color: var(--text);
       padding: 22px;
+      overflow-x: hidden;
+      overflow-y: auto;
+
+      color: var(--bodyText);
+      background:
+        radial-gradient(900px 520px at 14% 18%, rgba(0,122,120,0.34), transparent 55%),
+        radial-gradient(900px 520px at 86% 22%, rgba(29,66,137,0.32), transparent 56%),
+        radial-gradient(900px 520px at 50% 88%, rgba(211,39,62,0.20), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
     }
 
-    .wrap{
+    /* On short viewports, top-align so content never gets pushed off-screen */
+    @media (max-height: 720px){
+      body{ align-items: flex-start; }
+    }
+
+     .wrap{
       width: 100%;
       max-width: 1100px;
-
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 18px;
-
-      margin: auto;
+      gap: 16px;
+      margin: 0 auto;
     }
-
     @media (max-width: 900px){
-      body{ align-items: flex-start; }
       .wrap{ grid-template-columns: 1fr; }
     }
 
+    /* Frosted glass card: light surface + subtle blur + border */
     .card{
-      background: linear-gradient(180deg, var(--card2), var(--card));
+      min-width: 0;
+      background: linear-gradient(180deg, var(--card), var(--card2));
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 18px 18px 16px;
-      position: relative;
-      overflow: hidden;
+      padding: 18px;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      min-width: 0;
+      position: relative;
+      overflow: hidden;
+      color: var(--text);
     }
 
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(520px 240px at 12% 0%, rgba(0,122,120,0.12), transparent 55%),
+        radial-gradient(520px 240px at 90% 8%, rgba(29,66,137,0.12), transparent 55%);
+      pointer-events:none;
+      opacity: 0.9;
+    }
+    .card > * { position: relative; }
+
     .title{
-      font-size: 14px;
-      letter-spacing: 0.16em;
+      font-size: 12px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: rgba(15,23,42,0.62);
       margin: 0 0 8px;
     }
 
     .question{
-      font-size: clamp(20px, 2.5vw, 30px);
-      line-height: 1.15;
-      font-weight: 760;
-      margin: 0 0 10px;
+      font-size: clamp(20px, 2.3vw, 28px);
+      line-height: 1.2;
+      font-weight: 780;
+      margin: 0 0 12px;
+      color: var(--c1);
     }
 
     .sub{
-      margin: 0 0 12px;
+      margin: 0 0 14px;
       color: var(--muted);
       font-size: 14px;
     }
 
-    /* Likert “continuum” options */
+    .options{
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .opt{
+      border: 1px solid rgba(15,23,42,0.10);
+      border-radius: 12px;
+      padding: 12px 12px;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255,255,255,0.62);
+      transition: transform 110ms ease, border-color 110ms ease, background 110ms ease, box-shadow 110ms ease;
+    }
+
+    .opt:hover{
+      transform: translateY(-1px);
+      border-color: rgba(29,66,137,0.26);
+      background: rgba(255,255,255,0.78);
+    }
+
+    .opt.selected{
+      border-color: rgba(29,66,137,0.55);
+      box-shadow: 0 0 0 3px var(--accentSoft);
+      background: rgba(255,255,255,0.88);
+    }
+
+    .badge{
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 850;
+      color: #ffffff;
+      background: var(--c2);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+
+    .opt input{ display:none; }
+
+    .opt .label{
+      font-size: 16px;
+      font-weight: 650;
+      line-height: 1.2;
+      color: var(--text);
+      align-self: center;
+    }
+
+    .actions{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    button{
+      appearance: none;
+      border: 1px solid rgba(15,23,42,0.14);
+      background: rgba(255,255,255,0.82);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 780;
+      cursor: pointer;
+      transition: transform 110ms ease, border-color 110ms ease, background 110ms ease, opacity 110ms ease;
+    }
+    button:hover{
+      transform: translateY(-1px);
+      border-color: rgba(15,23,42,0.20);
+      background: rgba(255,255,255,0.92);
+    }
+    button:disabled{
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .primary{
+      background: var(--c2);
+      border-color: var(--c2);
+      color: #ffffff;
+    }
+    .primary:hover{
+      background: var(--c4);
+      border-color: var(--c4);
+    }
+
+    .status{
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: rgba(15,23,42,0.62);
+    }
+    .dot{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.18);
+    }
+    .dot.live{ background: var(--c6); }
+
+    .chartWrap{
+      height: 420px;
+      width: 100%;
+      overflow: hidden;
+    }
+    @media (max-width: 900px){
+      .chartWrap{ height: 360px; }
+    }
+
+    .footerNote{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(15,23,42,0.60);
+    }
+
+    /* Secret clear button: subtle on dark background */
+    .tiny-secret{
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      width: 14px;
+      height: 14px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.18);
+      cursor: pointer;
+      opacity: 0.45;
+      transition: opacity 110ms ease, transform 110ms ease, border-color 110ms ease, background 110ms ease;
+      z-index: 9999;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .tiny-secret:hover{
+      opacity: 0.95;
+      transform: translateY(-1px);
+      border-color: rgba(211,39,62,0.55);
+      background: rgba(255,255,255,0.22);
+    }
+
+/* Likert “continuum” options */
     .scaleWrap{
       margin-top: 10px;
       display: grid;
@@ -114,27 +293,6 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 10px;
-    }
-
-    .opt{
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 14px;
-      padding: 12px;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
-      min-width: 0;
-    }
-    .opt:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,0.13);
-      border-color: rgba(255,255,255,0.28);
-    }
-    .opt.selected{
-      border-color: rgba(29,66,137,0.65);
-      box-shadow: 0 0 0 5px rgba(29,66,137,0.16);
-      background: rgba(255,255,255,0.15);
     }
 
     .optTop{
@@ -156,73 +314,6 @@
       flex: 0 0 auto;
     }
 
-    .label{
-      font-size: 14px;
-      line-height: 1.2;
-      color: rgba(255,255,255,0.90);
-      font-weight: 650;
-      word-break: break-word;
-    }
-
-    .actions{
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 14px;
-      flex-wrap: wrap;
-    }
-
-    button{
-      appearance: none;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.10);
-      color: var(--text);
-      border-radius: 14px;
-      padding: 10px 12px;
-      font-weight: 780;
-      cursor: pointer;
-      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, opacity 120ms ease;
-    }
-    button:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,0.13);
-      border-color: rgba(255,255,255,0.26);
-    }
-    button:disabled{
-      opacity: 0.55;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .primary{
-      background: rgba(29,66,137,0.38);
-      border-color: rgba(29,66,137,0.48);
-    }
-
-    .status{
-      margin-left: auto;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .dot{
-      width: 10px; height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.35);
-    }
-    .dot.live{
-      background: var(--c6);
-      box-shadow: 0 0 0 6px rgba(0,122,120,0.16);
-    }
-
-    .chartWrap{
-      height: 360px;
-      width: 100%;
-      overflow: hidden;
-    }
-
     .coefWrap{
       margin-top: 14px;
       height: 150px;
@@ -232,30 +323,6 @@
       padding-top: 12px;
     }
 
-    .footerNote{
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.70);
-    }
-
-    .tiny-secret{
-      position: fixed;
-      left: 10px;
-      bottom: 10px;
-      width: 14px;
-      height: 14px;
-      border-radius: 6px;
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.18);
-      cursor: pointer;
-      opacity: 0.35;
-      transition: opacity 120ms ease, transform 120ms ease;
-      z-index: 9999;
-    }
-    .tiny-secret:hover{
-      opacity: 0.75;
-      transform: translateY(-1px);
-    }
   </style>
 </head>
 <body>
@@ -512,9 +579,16 @@
           },
           scales: {
             x: {
-              ticks: { color: "rgba(255,255,255,0.78)", font: { weight: 650 } },
-              grid: { color: "rgba(255,255,255,0.10)" }
-            },
+              type: "linear",
+              min: 0,
+              max: 1,
+              ticks: {
+                stepSize: 1,
+                precision: 0,
+                color: "rgba(255,255,255,0.78)",
+                font: { weight: 650 }
+              },
+              grid: { color: "rgba(255,255,255,0.10)" }},
             y: {
               beginAtZero: true,
               ticks: { color: "rgba(255,255,255,0.70)" },
@@ -640,11 +714,17 @@
       const dens = (n>0) ? kdeWeighted(xs, ws, gridX) : gridX.map(_=>0);
 
       if (!densityChart) initDensityChart();
-      densityChart.data.labels = gridX.map(x => x.toString());
-      densityChart.data.datasets[0].data = dens;
-      densityChart.update();
+      const points = gridX.map((x, i) => ({ x, y: dens[i] }));
 
-      const st = weightedStats(xs, ws);
+      densityChart.data.labels = [];
+      densityChart.data.datasets[0].data = points;
+
+      // Force integer ticks from min..max of the spreadsheet scale
+      densityChart.options.scales.x.min = Math.floor(minX);
+      densityChart.options.scales.x.max = Math.ceil(maxX);
+
+      densityChart.update();
+const st = weightedStats(xs, ws);
 
       if (!coefChart) initCoefChart();
 
