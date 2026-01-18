@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Poll</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      /* Dark site background (complements your palette) */
+      --bg0: #070b16;
+      --bg1: #0a1224;
+      --bg2: #081a20;
+
+      /* Card surface (light frosted) */
+      --card: rgba(255,255,255,0.86);
+      --card2: rgba(255,255,255,0.72);
+      --border: rgba(255,255,255,0.22);
+      --border2: rgba(15,23,42,0.14);
+      --shadow: 0 16px 55px rgba(0,0,0,0.40);
+      --radius: 16px;
+
+      /* Text inside cards */
+      --text: #0f172a;       /* near-slate */
+      --muted: #475569;      /* slate */
+
+      /* Your categorical palette */
+      --c1: #003b49;
+      --c2: #1d4289;
+      --c3: #d3273e;
+      --c4: #1b365d;
+      --c5: #5d3754;
+      --c6: #007a78;
+
+      /* UI accents */
+      --accent: var(--c2);
+      --accentSoft: rgba(29,66,137,0.14);
+      --danger: var(--c3);
+
+      /* Body text on dark bg */
+      --bodyText: rgba(255,255,255,0.88);
+      --bodyMuted: rgba(255,255,255,0.64);
+    }
+
+    * { box-sizing: border-box; }
+
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+
+      /* Center by default, but stay safe when resizing */
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      overflow-x: hidden;
+      overflow-y: auto;
+
+      color: var(--bodyText);
+      background:
+        radial-gradient(900px 520px at 14% 18%, rgba(0,122,120,0.34), transparent 55%),
+        radial-gradient(900px 520px at 86% 22%, rgba(29,66,137,0.32), transparent 56%),
+        radial-gradient(900px 520px at 50% 88%, rgba(211,39,62,0.20), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+    }
+
+    /* On short viewports, top-align so content never gets pushed off-screen */
+    @media (max-height: 720px){
+      body{ align-items: flex-start; }
+    }
+
+     .wrap{
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px){
+      .wrap{ grid-template-columns: 1fr; }
+    }
+
+    /* Frosted glass card: light surface + subtle blur + border */
+    .card{
+      min-width: 0;
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+      color: var(--text);
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(520px 240px at 12% 0%, rgba(0,122,120,0.12), transparent 55%),
+        radial-gradient(520px 240px at 90% 8%, rgba(29,66,137,0.12), transparent 55%);
+      pointer-events:none;
+      opacity: 0.9;
+    }
+    .card > * { position: relative; }
+
+    .title{
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(15,23,42,0.62);
+      margin: 0 0 8px;
+    }
+
+    .question{
+      font-size: clamp(20px, 2.3vw, 28px);
+      line-height: 1.2;
+      font-weight: 780;
+      margin: 0 0 12px;
+      color: var(--c1);
+    }
+
+    .sub{
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .options{
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .opt{
+      border: 1px solid rgba(15,23,42,0.10);
+      border-radius: 12px;
+      padding: 12px 12px;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255,255,255,0.62);
+      transition: transform 110ms ease, border-color 110ms ease, background 110ms ease, box-shadow 110ms ease;
+    }
+
+    .opt:hover{
+      transform: translateY(-1px);
+      border-color: rgba(29,66,137,0.26);
+      background: rgba(255,255,255,0.78);
+    }
+
+    .opt.selected{
+      border-color: rgba(29,66,137,0.55);
+      box-shadow: 0 0 0 3px var(--accentSoft);
+      background: rgba(255,255,255,0.88);
+    }
+
+    .badge{
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 850;
+      color: #ffffff;
+      background: var(--c2);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+
+    .opt input{ display:none; }
+
+    .opt .label{
+      font-size: 16px;
+      font-weight: 650;
+      line-height: 1.2;
+      color: var(--text);
+      align-self: center;
+    }
+
+    .actions{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    button{
+      appearance: none;
+      border: 1px solid rgba(15,23,42,0.14);
+      background: rgba(255,255,255,0.82);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 780;
+      cursor: pointer;
+      transition: transform 110ms ease, border-color 110ms ease, background 110ms ease, opacity 110ms ease;
+    }
+    button:hover{
+      transform: translateY(-1px);
+      border-color: rgba(15,23,42,0.20);
+      background: rgba(255,255,255,0.92);
+    }
+    button:disabled{
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .primary{
+      background: var(--c2);
+      border-color: var(--c2);
+      color: #ffffff;
+    }
+    .primary:hover{
+      background: var(--c4);
+      border-color: var(--c4);
+    }
+
+    .status{
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: rgba(15,23,42,0.62);
+    }
+    .dot{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.18);
+    }
+    .dot.live{ background: var(--c6); }
+
+    .chartWrap{
+      height: 420px;
+      width: 100%;
+      overflow: hidden;
+    }
+    @media (max-width: 900px){
+      .chartWrap{ height: 360px; }
+    }
+
+    .footerNote{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(15,23,42,0.60);
+    }
+
+    /* Secret clear button: subtle on dark background */
+    .tiny-secret{
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      width: 14px;
+      height: 14px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.18);
+      cursor: pointer;
+      opacity: 0.45;
+      transition: opacity 110ms ease, transform 110ms ease, border-color 110ms ease, background 110ms ease;
+      z-index: 9999;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .tiny-secret:hover{
+      opacity: 0.95;
+      transform: translateY(-1px);
+      border-color: rgba(211,39,62,0.55);
+      background: rgba(255,255,255,0.22);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card" aria-label="Poll input">
+      <p class="title">SOCY 101 - 007</p>
+      <h1 id="qText" class="question">Loading question…</h1>
+      <p id="qSub" class="sub">Choose one option.</p>
+
+      <div id="options" class="options" role="radiogroup" aria-label="Options"></div>
+
+      <div class="actions">
+        <button id="voteBtn" class="primary" disabled>Submit</button>
+        <button id="revoteBtn" disabled title="Change your vote on this device">Change vote</button>
+
+        <div class="status" title="Live connection status">
+          <span id="liveDot" class="dot"></span>
+          <span id="liveText">Connecting…</span>
+        </div>
+      </div>
+
+      <p class="footerNote">Anonymous • aggregated counts only</p>
+    </section>
+
+    <section class="card" aria-label="Results">
+      <p class="title">Results</p>
+      <div class="chartWrap">
+        <canvas id="chart"></canvas>
+      </div>
+      <p id="countNote" class="footerNote"></p>
+    </section>
+  </div>
+
+  <div id="secretClear" class="tiny-secret" title="(instructor) clear"></div>
+
+  <script>
+    /**********************
+     * EDIT THESE TWO LINES
+     **********************/
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxB5M8ECJ40aHVYDFbYlr64ubuFm3McUArdNpzKk0021c_hg8M4vWgxOLcmJiW2aJfU/exec";
+    const POLL_ID = "Choose One - cats";
+
+    /**********************
+     * PALETTE (categorical only)
+     **********************/
+    const PALETTE = ["#003b49","#1d4289","#d3273e","#1b365d","#5d3754","#007a78"];
+
+    const REFRESH_MS = 1500;
+    const LOCAL_LOCK_KEY = `poll_lock_${POLL_ID}`;
+
+    let poll = null;
+    let chart = null;
+    let selectedValue = null;
+    let refreshTimer = null;
+
+    const elQ = document.getElementById("qText");
+    const elSub = document.getElementById("qSub");
+    const elOptions = document.getElementById("options");
+    const elVote = document.getElementById("voteBtn");
+    const elReVote = document.getElementById("revoteBtn");
+    const elLiveDot = document.getElementById("liveDot");
+    const elLiveText = document.getElementById("liveText");
+    const elCountNote = document.getElementById("countNote");
+
+    function setLive(ok, msg){
+      elLiveDot.classList.toggle("live", !!ok);
+      elLiveText.textContent = msg || (ok ? "Live" : "Offline");
+    }
+
+    function hasVotedOnThisDevice(){
+      return localStorage.getItem(LOCAL_LOCK_KEY) === "1";
+    }
+    function setVotedOnThisDevice(v){
+      localStorage.setItem(LOCAL_LOCK_KEY, v ? "1" : "0");
+    }
+
+    function buildOptions(options){
+      elOptions.innerHTML = "";
+      selectedValue = null;
+      elVote.disabled = true;
+
+      options.forEach((opt, idx) => {
+        const id = `opt_${idx}`;
+        const wrap = document.createElement("label");
+        wrap.className = "opt";
+        wrap.setAttribute("for", id);
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = (opt.value || "").toString().trim() || String.fromCharCode(65 + idx);
+        badge.style.background = PALETTE[idx % PALETTE.length];
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "poll_option";
+        input.id = id;
+        input.value = opt.value;
+
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = opt.label;
+
+        wrap.appendChild(badge);
+        wrap.appendChild(input);
+        wrap.appendChild(label);
+
+        wrap.addEventListener("click", () => {
+          // visual selection
+          Array.from(elOptions.children).forEach(x => x.classList.remove("selected"));
+          wrap.classList.add("selected");
+
+          selectedValue = opt.value;
+          if (hasVotedOnThisDevice()){
+            elVote.disabled = true;
+            elReVote.disabled = false;
+            elSub.textContent = "Vote recorded on this device.";
+          } else {
+            elVote.disabled = false;
+            elReVote.disabled = true;
+            elSub.textContent = "Ready to submit.";
+          }
+        });
+
+        elOptions.appendChild(wrap);
+      });
+
+      if (hasVotedOnThisDevice()){
+        elVote.disabled = true;
+        elReVote.disabled = false;
+        elSub.textContent = "Vote recorded on this device.";
+      } else {
+        elReVote.disabled = true;
+        elSub.textContent = "Choose one option. Results update live.";
+      }
+    }
+
+    function initChart(labels, counts){
+      const ctx = document.getElementById("chart");
+
+      // Use your palette for bars; repeat if more than 6 options
+      const barColors = labels.map((_, i) => PALETTE[i % PALETTE.length]);
+
+      chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Votes",
+            data: counts,
+            backgroundColor: barColors,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: {
+              ticks: { color: "rgba(15,23,42,0.78)", font: { weight: "600" } },
+              grid: { display: false }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: "rgba(15,23,42,0.62)" },
+              grid: { color: "rgba(15,23,42,0.10)" }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChart(labels, counts){
+      if (!chart){
+        initChart(labels, counts);
+        return;
+      }
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = counts;
+      chart.data.datasets[0].backgroundColor = labels.map((_, i) => PALETTE[i % PALETTE.length]);
+      chart.update();
+    }
+
+    async function apiGetPoll(){
+      const url = `${SCRIPT_URL}?action=get&poll=${encodeURIComponent(POLL_ID)}&t=${Date.now()}`;
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) throw new Error(`GET failed: ${res.status}`);
+      return await res.json();
+    }
+
+    async function apiVote(value){
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "vote", poll: POLL_ID, value })
+      });
+      if (!res.ok) throw new Error(`POST vote failed: ${res.status}`);
+      return await res.json();
+    }
+
+    async function apiClear(adminCode){
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "clear", poll: POLL_ID, adminCode })
+      });
+      if (!res.ok) throw new Error(`POST clear failed: ${res.status}`);
+      return await res.json();
+    }
+
+    async function loadInitial(){
+      try{
+        setLive(false, "Connecting…");
+        const data = await apiGetPoll();
+        poll = data;
+
+        elQ.textContent = poll.question || "Untitled poll";
+        buildOptions(poll.options || []);
+
+        const labels = (poll.options || []).map(o => o.label);
+        const counts = (poll.options || []).map(o => Number(o.count || 0));
+        updateChart(labels, counts);
+
+        const total = counts.reduce((a,b)=>a+b,0);
+        elCountNote.textContent = `Total votes: ${total}`;
+        setLive(true, "Live");
+      } catch (e){
+        console.error(e);
+        setLive(false, "Offline");
+        elQ.textContent = "Couldn’t load poll.";
+        elSub.textContent = "Check SCRIPT_URL and deployment permissions.";
+      }
+    }
+
+    async function refreshLoop(){
+      try{
+        const data = await apiGetPoll();
+        poll = data;
+
+        elQ.textContent = poll.question || "Untitled poll";
+
+        const existingLabels = Array.from(elOptions.querySelectorAll(".label")).map(x => x.textContent);
+        const newLabels = (poll.options || []).map(o => o.label);
+        const optionsChanged = existingLabels.join("||") !== newLabels.join("||");
+
+        if (optionsChanged){
+          buildOptions(poll.options || []);
+        }
+
+        const labels = (poll.options || []).map(o => o.label);
+        const counts = (poll.options || []).map(o => Number(o.count || 0));
+        updateChart(labels, counts);
+
+        const total = counts.reduce((a,b)=>a+b,0);
+        elCountNote.textContent = `Total votes: ${total}`;
+        setLive(true, "Live");
+      } catch (e){
+        console.error(e);
+        setLive(false, "Offline");
+      }
+    }
+
+    elVote.addEventListener("click", async () => {
+      if (!selectedValue) return;
+      elVote.disabled = true;
+      try{
+        await apiVote(selectedValue);
+        setVotedOnThisDevice(true);
+        elReVote.disabled = false;
+        elSub.textContent = "Vote recorded on this device.";
+        await refreshLoop();
+      } catch (e){
+        console.error(e);
+        setVotedOnThisDevice(false);
+        elSub.textContent = "Vote failed. Try again.";
+        elVote.disabled = false;
+      }
+    });
+
+    elReVote.addEventListener("click", () => {
+      setVotedOnThisDevice(false);
+      elReVote.disabled = true;
+      elSub.textContent = "You can change your vote now (this device only).";
+      elVote.disabled = !selectedValue;
+    });
+
+    document.getElementById("secretClear").addEventListener("click", async () => {
+      const adminCode = prompt("Instructor code to clear this poll:");
+      if (!adminCode) return;
+      try{
+        const out = await apiClear(adminCode);
+        if (out && out.ok){
+          setVotedOnThisDevice(false);
+          // clear selection highlight
+          Array.from(elOptions.children).forEach(x => x.classList.remove("selected"));
+          selectedValue = null;
+          elVote.disabled = true;
+          await refreshLoop();
+          alert("Cleared.");
+        } else {
+          alert("Wrong code (or clear failed).");
+        }
+      } catch (e){
+        console.error(e);
+        alert("Clear failed. Check deployment and code.");
+      }
+    });
+
+    (async () => {
+      await loadInitial();
+      refreshTimer = setInterval(refreshLoop, 1500);
+    })();
+  </script>
+</body>
+</html>
