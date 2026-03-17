@@ -1,0 +1,239 @@
+:root {
+  --bg-top: #f6efe4;
+  --bg-bottom: #e4ebef;
+  --card: rgba(255, 252, 247, 0.88);
+  --card-border: rgba(21, 51, 74, 0.14);
+  --ink: #173042;
+  --muted: #4f6778;
+  --accent: #8f3f2b;
+  --accent-dark: #6b2b1d;
+  --accent-soft: rgba(143, 63, 43, 0.1);
+  --shadow: 0 18px 40px rgba(23, 48, 66, 0.12);
+  --radius: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Source Sans 3", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(143, 63, 43, 0.14), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(62, 101, 124, 0.16), transparent 40%),
+    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.app-shell {
+  width: min(100%, 560px);
+}
+
+.card {
+  display: none;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.card.active {
+  display: block;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+h1,
+h2 {
+  margin: 0 0 14px;
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+}
+
+h2 {
+  font-size: clamp(1.7rem, 4vw, 2.2rem);
+}
+
+.lead,
+.helper,
+.message-body p,
+.message-body li,
+.status {
+  font-size: 1.08rem;
+  line-height: 1.5;
+}
+
+.lead {
+  margin: 0 0 20px;
+}
+
+.helper {
+  color: var(--muted);
+  margin: 14px 0 0;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+form {
+  margin-top: 18px;
+}
+
+input[type="email"],
+input[type="url"] {
+  width: 100%;
+  border: 1px solid rgba(23, 48, 66, 0.18);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font: inherit;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+}
+
+input:focus {
+  outline: 3px solid rgba(143, 63, 43, 0.18);
+  border-color: var(--accent);
+}
+
+button,
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 18px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  color: #fff8f3;
+  background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+  box-shadow: 0 10px 24px rgba(143, 63, 43, 0.22);
+}
+
+button:hover,
+.button-link:hover {
+  filter: brightness(1.04);
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.ghost-button {
+  color: var(--ink);
+  background: rgba(23, 48, 66, 0.08);
+  box-shadow: none;
+}
+
+.status {
+  min-height: 1.5em;
+  margin-top: 12px;
+  color: var(--accent-dark);
+}
+
+.message-body {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(23, 48, 66, 0.08);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.message-body p {
+  margin: 0 0 14px;
+}
+
+.message-body p:last-child,
+.message-body ul:last-child,
+.message-body ol:last-child {
+  margin-bottom: 0;
+}
+
+.message-body strong {
+  color: var(--accent-dark);
+}
+
+.message-body ul,
+.message-body ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.noscript-warning {
+  position: fixed;
+  inset: auto 16px 16px;
+  background: #fff4ea;
+  color: #6b2b1d;
+  border: 1px solid rgba(143, 63, 43, 0.2);
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-family: "Source Sans 3", sans-serif;
+}
+
+.qr-layout {
+  width: min(100%, 720px);
+  display: grid;
+  gap: 20px;
+}
+
+.qr-preview {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  text-align: center;
+}
+
+.qr-preview img {
+  width: min(100%, 320px);
+  max-width: 320px;
+  aspect-ratio: 1;
+  border-radius: 22px;
+  background: #fff;
+  padding: 16px;
+  border: 1px solid rgba(23, 48, 66, 0.08);
+}
+
+.small-note {
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.95em;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+}

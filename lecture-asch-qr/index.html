@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lecture Check-In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card active" id="intro-view" aria-labelledby="intro-title">
+        <p class="eyebrow">Private mobile check-in</p>
+        <h1 id="intro-title" data-lecture-title>Lecture Check-In</h1>
+        <p class="lead">
+          Enter your email to receive private instructions for the next classroom
+          task. Keep your phone angled away from the people around you while you
+          use this page.
+        </p>
+
+        <form id="email-form" novalidate>
+          <label class="field-label" for="email-input">Email address</label>
+          <input
+            id="email-input"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="name@example.edu"
+            required
+          />
+          <button type="submit" id="email-submit">Continue</button>
+        </form>
+
+        <p class="helper">
+          Use the same email address you would use for class communication.
+        </p>
+        <p class="status" id="form-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="card" id="gate-view" aria-labelledby="gate-title">
+        <p class="eyebrow">One more step</p>
+        <h2 id="gate-title">Private instructions ahead</h2>
+        <p class="lead">
+          The next screen is only for you. Turn your phone away from nearby
+          students, do not show your screen, and do not discuss it out loud.
+        </p>
+        <p class="helper">
+          Tap the button only when your screen is reasonably private.
+        </p>
+        <button type="button" id="reveal-button">Reveal my instructions</button>
+      </section>
+
+      <section class="card" id="message-view" aria-labelledby="message-title">
+        <p class="eyebrow" id="message-badge">Private instructions</p>
+        <h2 id="message-title">Read this quietly</h2>
+        <div id="message-body" class="message-body"></div>
+        <button type="button" id="next-button">Next</button>
+      </section>
+
+      <section class="card" id="cleared-view" aria-labelledby="cleared-title">
+        <p class="eyebrow">Screen cleared</p>
+        <h2 id="cleared-title">Your private message is gone</h2>
+        <p class="lead">
+          Look up at the lecture slides and wait for the next prompt. Keep your
+          phone down unless you need it again.
+        </p>
+        <button type="button" id="restart-button" class="ghost-button">
+          Start over
+        </button>
+      </section>
+    </main>
+
+    <noscript>
+      <div class="noscript-warning">
+        JavaScript is required for this page to assign a condition.
+      </div>
+    </noscript>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
