@@ -1,5 +1,5 @@
 const CONFIG = {
-  lectureTitle: "SOC 101 Conformity Exercise",
+  lectureTitle: "SOC 101 Solo Pre-Class Quiz",
   assignmentMode: "hash", // "hash" for no backend, "remote" for Google Apps Script
   remoteEndpoint: "",
   confederatePercent: 80,
@@ -9,21 +9,21 @@ const STORAGE_PREFIX = "asch-assignment:";
 
 const CONDITIONS = {
   confederate: {
-    badge: "Private instructions",
-    title: "Keep this from the people around you",
+    badge: "Solo pre-class quiz",
+    title: "Do not share responses",
     bodyHtml: `
       <p><strong>KEEP THIS MESSAGE FROM YOUR PEERS AROUND YOU.</strong> Do not show your screen, and do not discuss this message with anyone nearby.</p>
-      <p>You are a secret agent in the next task. Do not tell anyone around you. On the next slide, say that <strong>B</strong> is the correct answer.</p>
+      <p>This is one part of the solo pre-class quiz. You are a secret agent in the next task. Do not tell anyone around you. On the next slide, say that <strong>B</strong> is the correct answer.</p>
       <p>Do not be overconfident. Do not smirk or laugh. Do not fold. Agree with anyone who agrees with you.</p>
       <p>Click <strong>Next</strong> to erase this secret message from your screen.</p>
     `,
   },
   control: {
-    badge: "Private instructions",
-    title: "Keep this from the people around you",
+    badge: "Solo pre-class quiz",
+    title: "Do not share responses",
     bodyHtml: `
       <p><strong>KEEP THIS MESSAGE FROM YOUR PEERS AROUND YOU.</strong> Do not show your screen, and do not discuss this message with anyone nearby.</p>
-      <p>This is a private warm-up question. Read it on your own and keep your answer to yourself while the class gets ready.</p>
+      <p>This is one part of the solo pre-class quiz. Read it on your own and keep your answer to yourself while the class gets ready.</p>
       <p>Which sociologist is most closely associated with strain theory?<br /><strong>A.</strong> William Graham Sumner<br /><strong>B.</strong> Robert K. Merton<br /><strong>C.</strong> Howard S. Becker<br /><strong>D.</strong> Erich Goode</p>
       <p>Choose your answer silently, keep it private, and click <strong>Next</strong> when you are ready.</p>
     `,
